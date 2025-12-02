@@ -1,0 +1,105 @@
+﻿@model TTCSN.Models.UserRegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Đăng ký tài khoản</h2>
+
+                    <form asp-action="Register" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="AccountName" class="form-label">Email hoặc Số điện thoại</label>
+                            <input asp-for="AccountName" class="form-control form-control-lg" placeholder="Nhập email hoặc số điện thoại" />
+                            <span asp-validation-for="AccountName" class="text-danger"></span>
+                            <div class="form-text">Sử dụng email hoặc số điện thoại để đăng ký</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Mật khẩu</label>
+                            <input asp-for="Password" 
+                            type="password" 
+                            class="form-control form-control-lg"
+                            minlength="6"
+                            placeholder="Nhập mật khẩu"
+                            required/>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <small class="form-text text-muted">
+                            Mật khẩu phải có ít nhất 6 ký tự
+                        </small>
+
+                        <div class="mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                            <input asp-for="ConfirmPassword"
+                            type="password" 
+                            class="form-control form-control-lg"
+                            minlength="6"
+                            placeholder="Nhập lại mật khẩu" 
+                            required/>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+                        <small class="form-text text-muted">
+                            Mật khẩu phải có ít nhất 6 ký tự
+                        </small>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                Tôi đồng ý với <a href="#" class="text-decoration-none">Điều khoản sử dụng</a> và <a href="#" class="text-decoration-none">Chính sách bảo mật</a>
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-success btn-lg">Đăng ký</button>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="text-center">
+                            <p class="mb-0">Đã có tài khoản? <a asp-action="Login" class="fw-bold text-decoration-none">Đăng nhập ngay</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<style>
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+
+    .form-control:focus {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+    }
+
+    .btn-success {
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 600;
+    }
+
+    .card-body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+    }
+</style>

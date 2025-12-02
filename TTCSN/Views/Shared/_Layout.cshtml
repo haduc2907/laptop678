@@ -1,0 +1,331 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TTCSN</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/TTCSN.styles.css" asp-append-version="true" />
+
+    <style>
+        /* Normal flow layout - Footer after content */
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        main {
+            min-height: calc(100vh - 80px);
+            padding-bottom: 2rem;
+        }
+
+        /* Sticky Navbar */
+        .navbar-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+
+            .navbar-sticky .navbar-brand {
+                font-weight: bold;
+                font-size: 1.5rem;
+                color: white !important;
+            }
+
+            .navbar-sticky .nav-link {
+                color: rgba(255,255,255,0.9) !important;
+                font-weight: 500;
+                padding: 0.5rem 1rem !important;
+                transition: all 0.3s ease;
+                border-radius: 5px;
+                margin: 0 0.2rem;
+            }
+
+                .navbar-sticky .nav-link:hover {
+                    color: white !important;
+                    background-color: rgba(255,255,255,0.2);
+                    transform: translateY(-2px);
+                }
+
+                .navbar-sticky .nav-link.active {
+                    background-color: rgba(255,255,255,0.3);
+                    color: white !important;
+                }
+
+        /* Cart Badge */
+        .cart-icon {
+            position: relative;
+            font-size: 1.2rem;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #ff4757;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* User Dropdown */
+        .user-menu {
+            color: white !important;
+        }
+
+        .dropdown-menu {
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: none;
+            margin-top: 0.5rem;
+        }
+
+        .dropdown-item {
+            padding: 0.7rem 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+            .dropdown-item:hover {
+                background-color: #f8f9fa;
+                padding-left: 2rem;
+            }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+        }
+
+        /* Body padding for fixed navbar */
+        /* Main container */
+
+        /* Footer - Only appears after content */
+        .footer {
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            width: 100%;
+        }
+
+            .footer a {
+                color: rgba(255,255,255,0.8);
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+
+                .footer a:hover {
+                    color: white;
+                }
+
+        /* FORCE FIX - Override everything */
+        main.main-wrapper {
+            position: relative !important;
+            z-index: 1 !important;
+            min-height: calc(100vh - 70px) !important;
+        }
+
+        footer.footer {
+            position: relative !important;
+            z-index: 0 !important;
+            clear: both !important;
+        }
+        /* Navbar toggler for dark background */
+        .navbar-toggler {
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+    </style>
+
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-sticky">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-store"></i> Laptop678
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home"></i> Trang chủ
+                            </a>
+                        </li>
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Product" asp-action="Index">
+                                    <i class="fas fa-shopping-bag"></i> Sản phẩm
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Index">
+                                    <i class="fas fa-tachometer-alt"></i> Quản trị
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <!-- Shopping Cart -->
+                        <li class="nav-item">
+                            <a class="nav-link position-relative" asp-controller="Cart" asp-action="Index">
+                                <span class="cart-icon">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span class="cart-badge" id="cartCount">0</span>
+                                </span> 
+                                <span class="d-lg-none ms-2">Giỏ hàng</span>
+                            </a>
+                        </li>
+
+                        @if (User.Identities.Any(identity => identity.IsAuthenticated))
+                        {
+                            <!-- User Dropdown -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle user-menu" href="#" id="userDropdown"
+                                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span class="ms-1">@User.Identity?.Name</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                            <i class="fas fa-user me-2"></i> Hồ sơ của tôi
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Order" asp-action="MyOrders">
+                                            <i class="fas fa-box me-2"></i> Đơn hàng của tôi
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-light text-dark ms-2 px-3"
+                                   asp-controller="Account" asp-action="Register">
+                                    <i class="fas fa-user-plus"></i> Đăng ký
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        <div class="main-content">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="footer text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h5><i class="fas fa-store"></i> TTCSN Shop</h5>
+                    <p class="small">Cửa hàng trực tuyến uy tín, chất lượng hàng đầu Việt Nam</p>
+                    <div class="social-links">
+                        <a href="#" class="me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fab fa-youtube fa-lg"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5>Liên kết</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="mb-2"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+                        <li class="mb-2"><a asp-controller="Home" asp-action="Privacy">Chính sách</a></li>
+                        <li class="mb-2"><a asp-controller="Home" asp-action="Contact">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5>Liên hệ</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> 123 Đường ABC, Quận XYZ</li>
+                        <li class="mb-2"><i class="fas fa-phone me-2"></i> 0123 456 789</li>
+                        <li class="mb-2"><i class="fas fa-envelope me-2"></i> support@ttcsn.vn</li>
+                    </ul>
+                </div>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.2);">
+            <div class="text-center small">
+                &copy; 2025 TTCSN. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Update cart count from localStorage or API
+        function updateCartCount() {
+            // Giả sử bạn lưu số lượng items trong localStorage hoặc gọi API
+            // const cartCount = localStorage.getItem('cartItemCount') || 0;
+            // document.getElementById('cartCount').textContent = cartCount;
+
+            //Hoặc bạn có thể gọi API để lấy số lượng thực tế:
+
+        fetch('/Cart/GetCartCount')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cartCount').textContent = data;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+           
+        }
+
+        // Call on page load
+        updateCartCount();
+
+        // Active link highlighting
+        $(document).ready(function() {
+            var currentPath = window.location.pathname;
+            $('.navbar-nav .nav-link').each(function() {
+                var linkPath = $(this).attr('href');
+                if (currentPath === linkPath || currentPath.startsWith(linkPath + '/')) {
+                    $(this).addClass('active');
+                }
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

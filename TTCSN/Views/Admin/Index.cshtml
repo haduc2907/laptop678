@@ -1,0 +1,218 @@
+﻿@* Views/Admin/Dashboard.cshtml *@
+@{
+    ViewBag.Title = "Bảng điều khiển";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-title {
+            text-align: center;
+            color: white;
+            font-size: 36px;
+            margin-bottom: 50px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+            .dashboard-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            }
+
+        .card-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .card-product {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-order {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .card-report {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .card-account {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .card-category {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .card-description {
+            color: #7f8c8d;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.95);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-icon {
+            float: right;
+            font-size: 40px;
+            opacity: 0.3;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1 class="dashboard-title">Bảng điều khiển (Dashboard)</h1>
+
+        <div class="cards-grid">
+            <a href="@Url.Action("Index", "Product")" class="dashboard-card">
+                <div class="card-icon card-product">
+                    <i class="fas fa-box"></i>
+                </div>
+                <h3 class="card-title">Quản lý sản phẩm</h3>
+                <p class="card-description">Thêm, sửa, xóa và quản lý tất cả sản phẩm trong cửa hàng của bạn</p>
+            </a>
+
+            <a href="@Url.Action("Index", "Order")" class="dashboard-card">
+                <div class="card-icon card-order">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h3 class="card-title">Quản lý đơn hàng</h3>
+                <p class="card-description">Xem và xử lý các đơn hàng từ khách hàng, cập nhật trạng thái giao hàng</p>
+            </a>
+
+            <a href="@Url.Action("Revenue", "Report")" class="dashboard-card">
+                <div class="card-icon card-report">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="card-title">Báo cáo thống kê</h3>
+                <p class="card-description">Xem báo cáo doanh thu, thống kê bán hàng và phân tích dữ liệu</p>
+            </a>
+
+            <a href="@Url.Action("Index", "Category")" class="dashboard-card">
+                <div class="card-icon card-category">
+                    <i class="fas fa-list"></i>
+                </div>
+                <h3 class="card-title">Quản lý danh mục</h3>
+                <p class="card-description">Quản lý các danh mục sản phẩm và phân loại hàng hóa</p>
+            </a>
+
+            <a href="@Url.Action("Index", "User")" class="dashboard-card">
+                <div class="card-icon card-account">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3 class="card-title">Quản lý tài khoản</h3>
+                <p class="card-description">Quản lý tài khoản người dùng, phân quyền và bảo mật</p>
+            </a>
+        </div>
+
+        @* <div class="stats-section">
+            <div class="stat-box">
+                <i class="fas fa-box stat-icon"></i>
+                <div class="stat-label">Tổng sản phẩm</div>
+                <div class="stat-value">@ViewBag.TotalProducts</div>
+            </div>
+
+            <div class="stat-box">
+                <i class="fas fa-shopping-cart stat-icon"></i>
+                <div class="stat-label">Đơn hàng hôm nay</div>
+                <div class="stat-value">@ViewBag.TodayOrders</div>
+            </div>
+
+            <div class="stat-box">
+                <i class="fas fa-dollar-sign stat-icon"></i>
+                <div class="stat-label">Doanh thu tháng</div>
+                <div class="stat-value">@(ViewBag.MonthRevenue != null ? ((decimal)ViewBag.MonthRevenue).ToString("N0") : "0") đ</div>
+            </div>
+
+            <div class="stat-box">
+                <i class="fas fa-users stat-icon"></i>
+                <div class="stat-label">Khách hàng</div>
+                <div class="stat-value">@ViewBag.TotalCustomers</div>
+            </div>
+        </div> *@
+    </div>
+</body>
+</html>

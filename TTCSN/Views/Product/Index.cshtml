@@ -1,0 +1,327 @@
+﻿@model TTCSN.Models.ProductListViewModel
+
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Danh sách sản phẩm</h2>
+        <a asp-action="Addproduct" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Thêm sản phẩm mới
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Search and Filter Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-filter"></i> Tìm kiếm & Lọc sản phẩm
+            </h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get" id="filterForm">
+                <div class="row g-3">
+                    <!-- Search Query -->
+                    <div class="col-md-4">
+                        <label class="form-label">Tìm kiếm</label>
+                        <input type="text" class="form-control" name="searchQuery"
+                               value="@Model.SearchQuery" placeholder="Tên hoặc mô tả sản phẩm...">
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="col-md-3">
+                        <label class="form-label">Danh mục</label>
+                        <select class="form-select" name="categoryId">
+                            <option value="">-- Tất cả danh mục --</option>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">
+                                    @category.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Min Price -->
+                    <div class="col-md-2">
+                        <label class="form-label">Giá từ (₫)</label>
+                        <input type="number" class="form-control" name="minPrice"
+                               value="@Model.MinPrice" placeholder="0" min="0" step="1000">
+                    </div>
+
+                    <!-- Max Price -->
+                    <div class="col-md-2">
+                        <label class="form-label">Giá đến (₫)</label>
+                        <input type="number" class="form-control" name="maxPrice"
+                               value="@Model.MaxPrice" placeholder="10000000" min="0" step="1000">
+                    </div>
+
+                    <!-- Sort By -->
+                    <div class="col-md-3">
+                        <label class="form-label">Sắp xếp theo</label>
+                        <select class="form-select" name="sortBy">
+                            <option value="" selected="@(string.IsNullOrEmpty(Model.SortBy))">Mặc định (ID)</option>
+                            <option value="Name" selected="@(Model.SortBy == "Name")">Tên sản phẩm</option>
+                            <option value="Price" selected="@(Model.SortBy == "Price")">Giá</option>
+                            <option value="CreatedAt" selected="@(Model.SortBy == "CreatedAt")">Ngày tạo</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort Order -->
+                    <div class="col-md-3">
+                        <label class="form-label">Thứ tự</label>
+                        <select class="form-select" name="sortDescending">
+                            <option value="false" selected="@(!Model.SortDescending)">Tăng dần</option>
+                            <option value="true" selected="@Model.SortDescending">Giảm dần</option>
+                        </select>
+                    </div>
+
+                    <!-- Page Size -->
+                    <div class="col-md-2">
+                        <label class="form-label">Hiển thị</label>
+                        <select class="form-select" name="pageSize">
+                            <option value="5" selected="@(Model.PageSize == 5)">5</option>
+                            <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                            <option value="20" selected="@(Model.PageSize == 20)">20</option>
+                            <option value="50" selected="@(Model.PageSize == 50)">50</option>
+                        </select>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="col-md-4 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary flex-fill">
+                            <i class="fas fa-redo"></i> Đặt lại
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Info -->
+    @if (Model.TotalItems > 0)
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Tìm thấy <strong>@Model.TotalItems</strong> sản phẩm.
+            Đang hiển thị trang <strong>@Model.PageNumber</strong> / <strong>@Model.TotalPages</strong>
+        </div>
+    }
+
+    <!-- Products Table -->
+    <div class="card shadow">
+        <div class="card-body">
+            @if (Model.Products.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Hình ảnh</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Thương hiệu</th>
+                                <th>Giá</th>
+                                <th>Số lượng</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Model.Products)
+                            {
+                                <tr>
+                                    <td>@product.Id</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                        {
+                                            <img src="@product.ImageUrl" alt="@product.Name"
+                                                 class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-secondary d-inline-block" style="width: 60px; height: 60px;"></div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@product.Name</strong>
+                                        @if (!string.IsNullOrEmpty(product.Description))
+                                        {
+                                            <br>
+                                            <small class="text-muted">@product.Description</small>
+                                        }
+                                    </td>
+                                    <td>@product.Brand</td>
+                                    <td><strong class="text-success">@product.Price.ToString("N0") ₫</strong></td>
+                                    <td>
+                                        @if (product.StockQuantity > 0)
+                                        {
+                                            <span class="badge bg-success">@product.StockQuantity</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Hết hàng</span>
+                                        }
+                                    </td>
+                                    <td>@product.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="UpdateProduct" asp-route-id="@product.Id"
+                                               class="btn btn-sm btn-warning" title="Sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal@(product.Id)"
+                                                    title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Delete Modal -->
+                                        <div class="modal fade" id="deleteModal@(product.Id)" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Xác nhận xóa</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Bạn có chắc chắn muốn xóa sản phẩm <strong>@product.Name</strong>?
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                        <form asp-action="DeleteProduct" method="post" class="d-inline">
+                                                            <input type="hidden" name="Id" value="@product.Id" />
+                                                            <button type="submit" class="btn btn-danger">Xóa</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Product pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <!-- Previous Button -->
+                            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-searchQuery="@Model.SearchQuery"
+                                   asp-route-categoryId="@Model.CategoryId"
+                                   asp-route-minPrice="@Model.MinPrice"
+                                   asp-route-maxPrice="@Model.MaxPrice"
+                                   asp-route-sortBy="@Model.SortBy"
+                                   asp-route-sortDescending="@Model.SortDescending"
+                                   asp-route-pageSize="@Model.PageSize"
+                                   asp-route-pageNumber="@(Model.PageNumber - 1)">
+                                    Trước
+                                </a>
+                            </li>
+
+                            <!-- Page Numbers -->
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                @* Show first page, last page, current page, and 2 pages around current *@
+                                @if (i == 1 || i == Model.TotalPages || (i >= Model.PageNumber - 2 && i <= Model.PageNumber + 2))
+                                {
+                                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                        <a class="page-link"
+                                           asp-action="Index"
+                                           asp-route-searchQuery="@Model.SearchQuery"
+                                           asp-route-categoryId="@Model.CategoryId"
+                                           asp-route-minPrice="@Model.MinPrice"
+                                           asp-route-maxPrice="@Model.MaxPrice"
+                                           asp-route-sortBy="@Model.SortBy"
+                                           asp-route-sortDescending="@Model.SortDescending"
+                                           asp-route-pageSize="@Model.PageSize"
+                                           asp-route-pageNumber="@i">
+                                            @i
+                                        </a>
+                                    </li>
+                                }
+                                else if (i == Model.PageNumber - 3 || i == Model.PageNumber + 3)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+
+                            <!-- Next Button -->
+                            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-searchQuery="@Model.SearchQuery"
+                                   asp-route-categoryId="@Model.CategoryId"
+                                   asp-route-minPrice="@Model.MinPrice"
+                                   asp-route-maxPrice="@Model.MaxPrice"
+                                   asp-route-sortBy="@Model.SortBy"
+                                   asp-route-sortDescending="@Model.SortDescending"
+                                   asp-route-pageSize="@Model.PageSize"
+                                   asp-route-pageNumber="@(Model.PageNumber + 1)">
+                                    Sau
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">
+                        @if (!string.IsNullOrEmpty(Model.SearchQuery) || Model.CategoryId.HasValue || Model.MinPrice.HasValue || Model.MaxPrice.HasValue)
+                        {
+                            <span>Không tìm thấy sản phẩm nào phù hợp với tiêu chí tìm kiếm.</span>
+                        }
+                        else
+                        {
+                            <span>Chưa có sản phẩm nào. Hãy thêm sản phẩm mới!</span>
+                        }
+                    </p>
+                    <a asp-action="Index" class="btn btn-secondary me-2">Xóa bộ lọc</a>
+                    <a asp-action="Addproduct" class="btn btn-primary">Thêm sản phẩm</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto dismiss alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert-success, .alert-danger').fadeOut('slow');
+        }, 5000);
+    </script>
+}

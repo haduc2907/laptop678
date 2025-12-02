@@ -1,0 +1,90 @@
+﻿@model TTCSN.Models.UserLoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Đăng nhập</h2>
+
+                    @if (ViewBag.Message != null)
+                    {
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            @ViewBag.Message
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Login" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="AccountName" class="form-label">Email hoặc Số điện thoại</label>
+                            <input asp-for="AccountName" class="form-control form-control-lg" placeholder="Nhập email hoặc số điện thoại" />
+                            <span asp-validation-for="AccountName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Mật khẩu</label>
+                            <input asp-for="Password" type="password" class="form-control form-control-lg" placeholder="Nhập mật khẩu" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">Đăng nhập</button>
+                        </div>
+
+                        <div class="text-center">
+                            <a asp-action="ForgotPassword" class="text-muted text-decoration-none">Quên mật khẩu?</a>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="text-center">
+                            <p class="mb-0">Chưa có tài khoản? <a asp-action="Register" class="fw-bold text-decoration-none">Đăng ký ngay</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<style>
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-primary {
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 600;
+    }
+
+    .card-body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+    }
+</style>

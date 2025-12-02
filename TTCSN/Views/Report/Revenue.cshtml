@@ -1,0 +1,502 @@
+﻿@model TTCSN.Models.Report.RevenueReportViewModel
+
+@{
+    ViewData["Title"] = "Báo cáo Doanh thu";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-white p-4 rounded shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h1 class="display-5 mb-2">
+                    <i class="fas fa-chart-line"></i> Báo cáo Doanh thu
+                </h1>
+                <p class="lead mb-0">Thống kê doanh thu theo tháng và năm</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Bộ lọc</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Revenue" method="get">
+                <div class="row g-3">
+                    <!-- Chọn năm -->
+                    <div class="col-md-3">
+                        <label class="form-label">Năm</label>
+                        <select class="form-select" name="year" id="yearSelect">
+                            @foreach (var y in Model.AvailableYears)
+                            {
+                                <option value="@y" selected="@(y == Model.Year)">@y</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Chọn tháng (optional) -->
+                    <div class="col-md-3">
+                        <label class="form-label">Tháng (tùy chọn)</label>
+                        <select class="form-select" name="month">
+                            <option value="">Tất cả các tháng</option>
+                            @for (int i = 1; i <= 12; i++)
+                            {
+                                <option value="@i" selected="@(i == Model.Month)">Tháng @i</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Từ ngày -->
+                    <div class="col-md-2">
+                        <label class="form-label">Từ ngày</label>
+                        <input type="date" class="form-control" name="fromDate"
+                               value="@Model.FromDate?.ToString("yyyy-MM-dd")">
+                    </div>
+
+                    <!-- Đến ngày -->
+                    <div class="col-md-2">
+                        <label class="form-label">Đến ngày</label>
+                        <input type="date" class="form-control" name="toDate"
+                               value="@Model.ToDate?.ToString("yyyy-MM-dd")">
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="col-md-2 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Xem
+                        </button>
+                        <a asp-action="Revenue" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <!-- Tổng doanh thu -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-3">
+                        <i class="fas fa-dollar-sign fa-3x"></i>
+                    </div>
+                    <h6 class="text-muted text-uppercase mb-2">Tổng Doanh Thu</h6>
+                    <h2 class="mb-0 text-primary">
+                        @Model.TotalRevenue.ToString("N0") ₫
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng đơn hàng -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-success mb-3">
+                        <i class="fas fa-shopping-cart fa-3x"></i>
+                    </div>
+                    <h6 class="text-muted text-uppercase mb-2">Tổng Đơn Hàng</h6>
+                    <h2 class="mb-0 text-success">
+                        @Model.TotalOrders.ToString("N0")
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Giá trị trung bình -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-info mb-3">
+                        <i class="fas fa-chart-bar fa-3x"></i>
+                    </div>
+                    <h6 class="text-muted text-uppercase mb-2">Giá Trị TB/Đơn</h6>
+                    <h2 class="mb-0 text-info">
+                        @Model.AverageOrderValue.ToString("N0") ₫
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Biểu đồ doanh thu theo tháng -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line text-primary"></i>
+                        Doanh thu theo tháng - Năm @Model.Year
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyRevenueChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ doanh thu theo năm -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie text-success"></i>
+                        Doanh thu theo năm
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="yearlyRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="row">
+        <!-- Bảng dữ liệu theo tháng -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table text-primary"></i>
+                        Chi tiết theo tháng
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tháng</th>
+                                    <th class="text-end">Doanh thu</th>
+                                    <th class="text-end">Đơn hàng</th>
+                                    <th class="text-end">TB/Đơn</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.MonthlyData)
+                                {
+                                    <tr>
+                                        <td><strong>@item.MonthName</strong></td>
+                                        <td class="text-end text-primary">
+                                            <strong>@item.Revenue.ToString("N0") ₫</strong>
+                                        </td>
+                                        <td class="text-end">@item.OrderCount</td>
+                                        <td class="text-end text-muted">
+                                            @item.AverageOrderValue.ToString("N0") ₫
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th>Tổng cộng</th>
+                                    <th class="text-end text-primary">
+                                        @Model.MonthlyData.Sum(x => x.Revenue).ToString("N0") ₫
+                                    </th>
+                                    <th class="text-end">
+                                        @Model.MonthlyData.Sum(x => x.OrderCount)
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top sản phẩm bán chạy -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-fire text-danger"></i>
+                        Top 10 Sản phẩm bán chạy
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-end">SL</th>
+                                    <th class="text-end">Doanh thu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int rank = 1;
+                                }
+                                @foreach (var product in Model.TopProducts)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (rank <= 3)
+                                            {
+                                                <span class="badge bg-warning">@rank</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@rank</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <small>@product.ProductName</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="badge bg-info">@product.QuantitySold</span>
+                                        </td>
+                                        <td class="text-end text-success">
+                                            <small><strong>@product.Revenue.ToString("N0") ₫</strong></small>
+                                        </td>
+                                    </tr>
+                                    rank++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yearly Comparison Table -->
+    @if (Model.YearlyData.Any())
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-alt text-info"></i>
+                            So sánh theo năm
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Năm</th>
+                                        <th class="text-end">Doanh thu</th>
+                                        <th class="text-end">Đơn hàng</th>
+                                        <th class="text-end">Tăng trưởng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var year in Model.YearlyData.OrderByDescending(x => x.Year))
+                                    {
+                                        <tr>
+                                            <td><strong>@year.Year</strong></td>
+                                            <td class="text-end text-primary">
+                                                <strong>@year.Revenue.ToString("N0") ₫</strong>
+                                            </td>
+                                            <td class="text-end">@year.OrderCount</td>
+                                            <td class="text-end">
+                                                @if (year.Growth > 0)
+                                                {
+                                                    <span class="text-success">
+                                                        <i class="fas fa-arrow-up"></i>
+                                                        @year.Growth.ToString("N1")%
+                                                    </span>
+                                                }
+                                                else if (year.Growth < 0)
+                                                {
+                                                    <span class="text-danger">
+                                                        <i class="fas fa-arrow-down"></i>
+                                                        @year.Growth.ToString("N1")%
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Dữ liệu cho biểu đồ theo tháng
+        const monthlyLabels = @Html.Raw(Json.Serialize(Model.MonthlyData.Select(x => x.MonthName)));
+        const monthlyRevenue = @Html.Raw(Json.Serialize(Model.MonthlyData.Select(x => x.Revenue)));
+        const monthlyOrders = @Html.Raw(Json.Serialize(Model.MonthlyData.Select(x => x.OrderCount)));
+
+        // Biểu đồ doanh thu theo tháng (Line + Bar)
+        const ctxMonthly = document.getElementById('monthlyRevenueChart').getContext('2d');
+        new Chart(ctxMonthly, {
+            type: 'bar',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'Doanh thu (₫)',
+                    data: monthlyRevenue,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Số đơn hàng',
+                    data: monthlyOrders,
+                    type: 'line',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    if (context.datasetIndex === 0) {
+                                        label += new Intl.NumberFormat('vi-VN').format(context.parsed.y) + ' ₫';
+                                    } else {
+                                        label += context.parsed.y;
+                                    }
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
+                            }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false,
+                        }
+                    }
+                }
+            }
+        });
+
+        // Dữ liệu cho biểu đồ theo năm
+        const yearlyLabels = @Html.Raw(Json.Serialize(Model.YearlyData.Select(x => x.Year.ToString())));
+        const yearlyRevenue = @Html.Raw(Json.Serialize(Model.YearlyData.Select(x => x.Revenue)));
+
+        // Biểu đồ doanh thu theo năm (Doughnut)
+        const ctxYearly = document.getElementById('yearlyRevenueChart').getContext('2d');
+        new Chart(ctxYearly, {
+            type: 'doughnut',
+            data: {
+                labels: yearlyLabels,
+                datasets: [{
+                    label: 'Doanh thu',
+                    data: yearlyRevenue,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += new Intl.NumberFormat('vi-VN').format(context.parsed) + ' ₫';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .card {
+            transition: transform 0.2s;
+        }
+
+            .card:hover {
+                transform: translateY(-5px);
+            }
+
+        .table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+            .table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        canvas {
+            max-height: 400px;
+        }
+    </style>
+}

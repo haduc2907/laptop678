@@ -1,0 +1,296 @@
+﻿@model UserProfileViewModel
+@{
+    ViewData["Title"] = "Thông Tin Cá Nhân";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <img src="~/images/default-avatar.png"
+                             alt="Avatar"
+                             class="rounded-circle img-thumbnail"
+                             style="width: 120px; height: 120px; object-fit: cover;"
+                             onerror="this.src='https://via.placeholder.com/120'">
+                    </div>
+                    <h5 class="mb-1">@Model.FullName</h5>
+                    <p class="text-muted mb-3">@Model.Email</p>
+                    <button class="btn btn-outline-primary btn-sm w-100" disabled>
+                        <i class="bi bi-camera"></i> Đổi ảnh đại diện
+                    </button>
+                </div>
+            </div>
+
+            <!-- Menu Navigation -->
+            <div class="card shadow-sm mt-3">
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action active">
+                        <i class="bi bi-person"></i> Thông tin cá nhân
+                    </a>
+                    <a asp-action="ChangePassword" asp-controller="Account" class="list-group-item list-group-item-action">
+                        <i class="bi bi-lock"></i> Đổi mật khẩu
+                    </a>
+                    <a asp-action="MyOrders" asp-controller="Order" class="list-group-item list-group-item-action">
+                        <i class="bi bi-bag"></i> Đơn hàng của tôi
+                    </a>
+                    <a asp-action="Logout" asp-controller="Account" class="list-group-item list-group-item-action text-danger">
+                        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-circle"></i> Thông Tin Cá Nhân
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="UpdateProfile" method="post" id="profileForm">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FullName" class="form-label">
+                                    Họ và tên <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="FullName"
+                                       class="form-control"
+                                       placeholder="Nhập họ và tên"
+                                       readonly
+                                       id="fullNameInput">
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label">
+                                    Email <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Email"
+                                       class="form-control"
+                                       type="email"
+                                       placeholder="Nhập email"
+                                       readonly
+                                       id="emailInput">
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PhoneNumber" class="form-label">
+                                    Số điện thoại <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="PhoneNumber"
+                                       class="form-control"
+                                       type="tel"
+                                       placeholder="Nhập số điện thoại"
+                                       readonly
+                                       id="phoneInput">
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Address" class="form-label">
+                                    Địa chỉ
+                                </label>
+                                <input asp-for="Address"
+                                       class="form-control"
+                                       placeholder="Nhập địa chỉ"
+                                       readonly
+                                       id="addressInput">
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-primary" id="editBtn">
+                                <i class="bi bi-pencil"></i> Chỉnh sửa
+                            </button>
+                            <div id="actionButtons" style="display: none;">
+                                <button type="submit" class="btn btn-success me-2">
+                                    <i class="bi bi-check-lg"></i> Lưu thay đổi
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="cancelBtn">
+                                    <i class="bi bi-x-lg"></i> Hủy
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Info Card -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Thông Tin Tài Khoản
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="text-primary me-3">
+                                    <i class="bi bi-shield-check" style="font-size: 2rem;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Tài khoản đã xác thực</h6>
+                                    <small class="text-muted">Email và số điện thoại đã được xác thực</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="text-success me-3">
+                                    <i class="bi bi-calendar-check" style="font-size: 2rem;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Thành viên từ 2025</h6>
+                                    <small class="text-muted">Cảm ơn bạn đã tin tưởng chúng tôi</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Edit Mode Toggle
+        const editBtn = document.getElementById('editBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const actionButtons = document.getElementById('actionButtons');
+        const fullNameInput = document.getElementById('fullNameInput');
+        const emailInput = document.getElementById('emailInput');
+        const phoneInput = document.getElementById('phoneInput');
+        const addressInput = document.getElementById('addressInput');
+
+        // Store original values
+        let originalValues = {
+            fullName: fullNameInput.value,
+            email: emailInput.value,
+            phone: phoneInput.value,
+            address: addressInput.value
+        };
+
+                editBtn.addEventListener('click', function () {
+
+            // Unlock FullName và Address
+            fullNameInput.removeAttribute('readonly');
+            addressInput.removeAttribute('readonly');
+            phoneInput.removeAttribute('readonly');
+            emailInput.removeAttribute('readonly');
+
+
+            // Add border highlight
+            [fullNameInput, addressInput].forEach(input => {
+                input.classList.add('border-primary');
+            });
+
+            // Nếu email hoặc phone được mở thì highlight luôn
+            if (!emailInput.hasAttribute('readonly'))
+                emailInput.classList.add('border-primary');
+
+            if (!phoneInput.hasAttribute('readonly'))
+                phoneInput.classList.add('border-primary');
+
+            // Toggle button
+            editBtn.style.display = 'none';
+            actionButtons.style.display = 'block';
+        });
+
+
+        cancelBtn.addEventListener('click', function() {
+            // Restore original values
+            fullNameInput.value = originalValues.fullName;
+            emailInput.value = originalValues.email;
+            phoneInput.value = originalValues.phone;
+            addressInput.value = originalValues.address;
+
+            // Disable inputs
+            fullNameInput.setAttribute('readonly', 'readonly');
+            emailInput.setAttribute('readonly', 'readonly');
+            phoneInput.setAttribute('readonly', 'readonly');
+            addressInput.setAttribute('readonly', 'readonly');
+
+            // Remove focus class
+            [fullNameInput, emailInput, phoneInput, addressInput].forEach(input => {
+                input.classList.remove('border-primary');
+            });
+
+            // Toggle buttons
+            editBtn.style.display = 'block';
+            actionButtons.style.display = 'none';
+        });
+
+        // Auto dismiss alert
+        setTimeout(function() {
+            const alert = document.querySelector('.alert');
+            if (alert) {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            }
+        }, 3000);
+    </script>
+
+    <style>
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+
+        .list-group-item {
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+            .list-group-item:hover {
+                background-color: #f8f9fa;
+                border-left-color: #0d6efd;
+            }
+
+            .list-group-item.active {
+                background-color: #e7f1ff;
+                color: #0d6efd;
+                border-left-color: #0d6efd;
+            }
+
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+
+        .form-control:not([readonly]) {
+            background-color: #fff;
+        }
+
+        .border-primary {
+            border-color: #0d6efd !important;
+        }
+    </style>
+}

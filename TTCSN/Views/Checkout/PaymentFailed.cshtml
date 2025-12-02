@@ -1,0 +1,239 @@
+﻿@{
+    ViewData["Title"] = "Đặt hàng thất bại";
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-body text-center py-5">
+                    <!-- Failed Icon -->
+                    <div class="mb-4">
+                        <div class="error-icon">
+                            <div class="error-circle">
+                                <span class="error-line error-line-left"></span>
+                                <span class="error-line error-line-right"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <h2 class="text-danger mb-3">
+                        <i class="bi bi-x-circle-fill"></i> Đặt hàng thất bại!
+                    </h2>
+
+                    <p class="text-muted mb-4">
+                        Rất tiếc, đơn hàng của bạn không thể được xử lý. Vui lòng kiểm tra lại thông tin và thử lại.
+                    </p>
+
+                    <!-- Common Reasons -->
+                    <div class="alert alert-warning text-start mb-4">
+                        <strong><i class="bi bi-exclamation-triangle"></i> Các nguyên nhân có thể:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Sản phẩm không đủ số lượng trong kho</li>
+                            <li>Lỗi kết nối mạng</li>
+                            <li>Thông tin thanh toán không hợp lệ</li>
+                            <li>Phiên làm việc đã hết hạn</li>
+                            <li>Chưa cập nhật địa chỉ giao hàng</li>
+                        </ul>
+                    </div>
+
+                    <!-- Error Details (if any) -->
+                    @if (ViewData.ModelState.ErrorCount > 0)
+                    {
+                        <div class="alert alert-danger text-start mb-4">
+                            <strong><i class="bi bi-info-circle"></i> Chi tiết lỗi:</strong>
+                            <ul class="mb-0 mt-2">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Checkout" asp-action="Index" class="btn btn-danger btn-lg">
+                            <i class="bi bi-arrow-counterclockwise"></i> Thử lại
+                        </a>
+                        <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-cart"></i> Xem giỏ hàng
+                        </a>
+                        <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-shop"></i> Tiếp tục mua sắm
+                        </a>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="bi bi-house"></i> Về trang chủ
+                        </a>
+                    </div>
+
+                    <!-- Support Info -->
+                    <div class="mt-4 pt-4 border-top">
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-headset"></i> Cần hỗ trợ?
+                        </p>
+                        <p class="small">
+                            Liên hệ ngay: <a href="tel:1900xxxx" class="text-decoration-none">1900-xxxx</a> |
+                            <a href="mailto:support@shop.com" class="text-decoration-none">support@shop.com</a>
+                        </p>
+                        <p class="small text-muted">
+                            Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Error Animation Styles */
+    .error-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+    }
+
+    .error-circle {
+        width: 80px;
+        height: 80px;
+        position: relative;
+        border-radius: 50%;
+        box-sizing: content-box;
+        border: 4px solid #f44336;
+        animation: pulse-error 0.5s ease-in-out;
+    }
+
+    .error-line {
+        height: 5px;
+        background-color: #f44336;
+        display: block;
+        border-radius: 2px;
+        position: absolute;
+        z-index: 10;
+        width: 47px;
+        top: 37px;
+    }
+
+    .error-line-left {
+        left: 17px;
+        transform: rotate(45deg);
+        animation: error-line-left 0.75s;
+    }
+
+    .error-line-right {
+        right: 16px;
+        transform: rotate(-45deg);
+        animation: error-line-right 0.75s;
+    }
+
+    @@keyframes pulse-error {
+        0%
+
+    {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    }
+
+    @@keyframes error-line-left {
+        0%
+
+    {
+        width: 0;
+        left: 40px;
+    }
+
+    65% {
+        width: 0;
+        left: 40px;
+    }
+
+    84% {
+        width: 55px;
+        left: 12px;
+    }
+
+    100% {
+        width: 47px;
+        left: 17px;
+    }
+    
+    }
+
+    @@keyframes error-line-right {
+        0%
+
+    {
+        width: 0;
+        right: 40px;
+    }
+
+    65% {
+        width: 0;
+        right: 40px;
+    }
+
+    84% {
+        width: 55px;
+        right: 12px;
+    }
+
+    100% {
+        width: 47px;
+        right: 16px;
+    }
+
+    }
+
+    .card {
+        border-radius: 15px;
+    }
+
+    .btn {
+        border-radius: 10px;
+        font-weight: 500;
+    }
+
+    .alert ul {
+        padding-left: 1.2rem;
+    }
+
+        .alert ul li {
+            margin-bottom: 0.3rem;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        // Auto scroll to top when page loads
+        window.scrollTo(0, 0);
+
+        // Optional: Add shake animation to error icon
+        document.addEventListener('DOMContentLoaded', function() {
+            const errorIcon = document.querySelector('.error-icon');
+            if (errorIcon) {
+                setTimeout(() => {
+                    errorIcon.style.animation = 'shake 0.5s';
+                }, 500);
+            }
+        });
+    </script>
+}

@@ -1,0 +1,286 @@
+﻿@using TTCSN.Entities.Enum
+@model TTCSN.Models.Order.OrderDetailListViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    var orderId = Model.OrderDetails.FirstOrDefault()?.OrderId ?? 0;
+    var isDelivered = Model.OrderDetails.FirstOrDefault()?.IsDelivered ?? false;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-receipt"></i> Chi tiết đơn hàng #@orderId</h2>
+        <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Trang chủ
+        </a>
+    </div>
+
+    @if (!Model.OrderDetails.Any())
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> Không tìm thấy chi tiết đơn hàng
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 60px;">#</th>
+                                <th>Sản phẩm</th>
+                                <th>Đơn giá</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
+                                @if (Model.OrderDetails.FirstOrDefault()?.IsDelivered ?? false)
+                                {
+                                    <th style="width: 150px;">Đánh giá</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                decimal total = 0;
+                                int index = 1;
+                            }
+                            @foreach (var item in Model.OrderDetails)
+                            {
+                                var subtotal = item.UnitPrice * item.Quantity;
+                                total += subtotal;
+
+                                <tr>
+                                    <td>@index</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                            {
+                                                <img src="@item.ImageUrl" alt="@item.ProductName"
+                                                     style="width: 60px; height: 60px; object-fit: cover;"
+                                                     class="me-3 rounded">
+                                            }
+                                            <div>
+                                                <h6 class="mb-0">@item.ProductName</h6>
+                                                <small class="text-muted">Mã SP: @item.ProductId</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>@item.UnitPrice.ToString("N0")</strong> đ
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@item.Quantity</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-danger">@subtotal.ToString("N0") đ</strong>
+                                    </td>
+                                    @if (item.IsDelivered && !item.IsReviewed)
+                                    {
+                                        <td>
+                                            <button class="btn btn-sm btn-primary review-btn"
+                                                    data-product-id="@item.ProductId"
+                                                    data-product-name="@item.ProductName"
+                                                    data-order-id="@orderId">
+                                                <i class="fas fa-star"></i> Đánh giá
+                                            </button>
+                                        </td>
+                                    }
+                                    @if (item.IsDelivered && item.IsReviewed)
+                                    {
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" readonly>
+                                                <i class="fas fa-star"></i> Đã  đánh giá
+                                            </button>
+                                        </td>
+                                    }
+                                </tr>
+
+                                index++;
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light">
+                                <td colspan="@(Model.OrderDetails.FirstOrDefault()?.IsDelivered ?? false)" class="text-end">
+                                    <strong>Tổng cộng:</strong>
+                                </td>
+                                <td>
+                                    <h5 class="mb-0 text-danger">@total.ToString("N0") đ</h5>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle"></i> Thông tin đơn hàng</h6>
+                        <p class="mb-1"><strong>Mã đơn hàng:</strong> #@orderId</p>
+                        <p class="mb-1">
+                            <strong>Trạng thái:</strong>
+                            <span class="badge bg-@(isDelivered ? "success" : "warning")">
+                                @(isDelivered ? "Đã giao hàng" : "Đang xử lý")
+                            </span>
+                    </p>
+                    <p class="mb-1"><strong>Số lượng sản phẩm:</strong> @Model.OrderDetails.Sum(x => x.Quantity)</p>
+                    <p class="mb-1"><strong>Tổng tiền:</strong> <span class="text-danger">@total.ToString("N0") đ</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+        }
+</div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-star text-warning"></i> Đánh giá sản phẩm
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="reviewProductId" />
+                <input type="hidden" id="reviewOrderId" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Sản phẩm:</label>
+                    <p id="reviewProductName" class="text-muted"></p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Đánh giá của bạn: <span class="text-danger">*</span></label>
+                    <div class="star-rating">
+                        <i class="fas fa-star star" data-rating="1"></i>
+                        <i class="fas fa-star star" data-rating="2"></i>
+                        <i class="fas fa-star star" data-rating="3"></i>
+                        <i class="fas fa-star star" data-rating="4"></i>
+                        <i class="fas fa-star star" data-rating="5"></i>
+                    </div>
+                    <input type="hidden" id="ratingValue" value="0" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="reviewComment" class="form-label fw-bold">Nhận xét: <small class="text-muted">(Tùy chọn)</small></label>
+                    <textarea class="form-control" id="reviewComment" rows="4"
+                              placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="submitReview()">
+                    <i class="fas fa-paper-plane"></i> Gửi đánh giá
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .star-rating {
+        font-size: 2rem;
+        cursor: pointer;
+    }
+
+        .star-rating .star {
+            color: #ddd;
+            transition: color 0.2s;
+        }
+
+            .star-rating .star.active,
+            .star-rating .star:hover {
+                color: #ffc107;
+            }
+</style>
+
+<script>
+    let selectedRating = 0;
+
+    // Open review modal
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.review-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                const productName = this.getAttribute('data-product-name');
+                const orderId = this.getAttribute('data-order-id');
+                openReviewModal(productId, productName, orderId);
+            });
+        });
+    });
+
+    function openReviewModal(productId, productName, orderId) {
+        document.getElementById('reviewProductId').value = productId;
+        document.getElementById('reviewProductName').textContent = productName;
+        document.getElementById('reviewOrderId').value = orderId;
+        document.getElementById('reviewComment').value = '';
+        document.getElementById('ratingValue').value = 0;
+        selectedRating = 0;
+
+        // Reset stars
+        document.querySelectorAll('.star').forEach(star => {
+            star.classList.remove('active');
+        });
+
+        var modal = new bootstrap.Modal(document.getElementById('reviewModal'));
+        modal.show();
+    }
+
+    // Star rating functionality
+    document.querySelectorAll('.star').forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.getAttribute('data-rating'));
+            document.getElementById('ratingValue').value = selectedRating;
+
+            document.querySelectorAll('.star').forEach(s => {
+                s.classList.remove('active');
+            });
+
+            for(let i = 1; i <= selectedRating; i++) {
+                document.querySelector(`.star[data-rating="${i}"]`).classList.add('active');
+            }
+        });
+    });
+
+    async function submitReview() {
+        const productId = document.getElementById('reviewProductId').value;
+        const orderId = document.getElementById('reviewOrderId').value;
+        const rating = document.getElementById('ratingValue').value;
+        const comment = document.getElementById('reviewComment').value.trim();
+
+        if (rating == 0) {
+            alert('Vui lòng chọn số sao đánh giá!');
+            return;
+        }
+
+        // Gọi action AddReview của controller hiện tại
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '@Url.Action("AddReview", "Review")';
+
+        const fields = {
+            'review.ProductId': productId,
+            'review.Rating': rating,
+            'review.Comment': comment,
+            'productId': productId,
+			'orderId': orderId
+        };
+
+        for (const key in fields) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = fields[key];
+            form.appendChild(input);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>

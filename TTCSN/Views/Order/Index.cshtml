@@ -1,0 +1,469 @@
+﻿@model TTCSN.Models.Order.OrderListViewModel
+
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-shopping-bag"></i> Quản lý đơn hàng</h2>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Bộ lọc</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get">
+                <div class="row g-3">
+                    <!-- Status Filter -->
+                    <div class="col-md-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select name="status" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="0" selected="@(Model.Status == TTCSN.Entities.Enum.OrderStatus.Pending)">Chờ xử lý</option>
+                            <option value="1" selected="@(Model.Status == TTCSN.Entities.Enum.OrderStatus.Processing)">Đang xử lý</option>
+                            <option value="2" selected="@(Model.Status == TTCSN.Entities.Enum.OrderStatus.Shipped)">Đã gửi hàng</option>
+                            <option value="3" selected="@(Model.Status == TTCSN.Entities.Enum.OrderStatus.Delivered)">Đã giao</option>
+                            <option value="4" selected="@(Model.Status == TTCSN.Entities.Enum.OrderStatus.Cancelled)">Đã hủy</option>
+                        </select>
+                    </div>
+                    <!-- Start Date -->
+                    <div class="col-md-3">
+                        <label class="form-label">Từ ngày</label>
+                        <input type="date" name="startDate" class="form-control" value="@Model.StartDate?.ToString("yyyy-MM-dd")">
+                    </div>
+
+                    <!-- End Date -->
+                    <div class="col-md-3">
+                        <label class="form-label">Đến ngày</label>
+                        <input type="date" name="endDate" class="form-control" value="@Model.EndDate?.ToString("yyyy-MM-dd")">
+                    </div>
+
+                    <!-- Sort By -->
+                    <div class="col-md-3">
+                        <label class="form-label">Sắp xếp theo</label>
+                        <select name="sortBy" class="form-select">
+                            <option value="Id" selected="@(Model.SortBy == "Id")">Mã đơn hàng</option>
+                            <option value="OrderDate" selected="@(Model.SortBy == "OrderDate")">Ngày đặt</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="form-check form-switch d-inline-block me-3">
+                            <input class="form-check-input" type="checkbox" name="sortDescending"
+                                   id="sortDescending" value="true" checked="@Model.SortDescending">
+                            <label class="form-check-label" for="sortDescending">
+                                Giảm dần
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (!Model.Orders.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i> Không tìm thấy đơn hàng nào
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã ĐH</th>
+                                <th>Khách hàng</th>
+                                <th>Số điện thoại</th>
+                                <th>Địa chỉ giao hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Thanh toán</th>
+                                <th>Trạng thái</th>
+                                <th>Ghi chú</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.Orders)
+                            {
+                                <tr>
+                                    <td><strong>#@order.Id</strong></td>
+                                    <td>
+                                        @if (order.Customer != null)
+                                        {
+                                            <div>
+                                                <strong>@order.Customer.FullName</strong><br>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-envelope"></i> @order.Customer.Email
+                                                </small>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(order.PhoneNumber))
+                                        {
+                                            <small>
+                                                <i class="fas fa-mobile-alt text-danger"></i>
+                                                @order.PhoneNumber
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa có</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(order.Address))
+                                        {
+                                            <small>
+                                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                                @order.Address
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa có</span>
+                                        }
+                                    </td>
+                                    <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td><strong class="text-danger">@order.TotalAmount.ToString("N0") đ</strong></td>
+                                    <td>
+                                        <span class="badge @GetPaymentMethodBadgeClass(order.PaymentMethod)">
+                                            <i class="@GetPaymentMethodIcon(order.PaymentMethod)"></i>
+                                            @GetPaymentMethodText(order.PaymentMethod)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @GetStatusBadgeClass(order.Status)" id="status-badge-@order.Id">
+                                            @GetStatusText(order.Status)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(order.Note))
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="@order.Note">
+                                                <i class="fas fa-sticky-note"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">--</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-orderId="@order.Id"
+                                               class="btn btn-sm btn-info" title="Chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-warning"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#statusModal"
+                                                    data-order-id="@order.Id"
+                                                    data-current-status="@((int)order.Status)"
+                                                    data-current-note="@order.Note"
+                                                    title="Cập nhật trạng thái">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-pageNumber="@(Model.PageNumber - 1)"
+                                   asp-route-status="@Model.Status"
+                                   asp-route-startDate="@Model.StartDate"
+                                   asp-route-endDate="@Model.EndDate"
+                                   asp-route-sortBy="@Model.SortBy"
+                                   asp-route-sortDescending="@Model.SortDescending">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-pageNumber="@i"
+                                       asp-route-status="@Model.Status"
+                                       asp-route-startDate="@Model.StartDate"
+                                       asp-route-endDate="@Model.EndDate"
+                                       asp-route-sortBy="@Model.SortBy"
+                                       asp-route-sortDescending="@Model.SortDescending">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                   asp-route-status="@Model.Status"
+                                   asp-route-startDate="@Model.StartDate"
+                                   asp-route-endDate="@Model.EndDate"
+                                   asp-route-sortBy="@Model.SortBy"
+                                   asp-route-sortDescending="@Model.SortDescending">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <p class="text-center text-muted">
+                        Trang @Model.PageNumber / @Model.TotalPages (Tổng @Model.TotalItems đơn hàng)
+                    </p>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal Update Status -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit"></i> Cập nhật trạng thái đơn hàng
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalOrderId">
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-info-circle"></i> Trạng thái mới</label>
+                    <select id="modalStatus" class="form-select">
+                        <option value="0">Chờ xử lý</option>
+                        <option value="1">Đang xử lý</option>
+                        <option value="2">Đã gửi hàng</option>
+                        <option value="3">Đã giao</option>
+                        <option value="4">Đã hủy</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fas fa-sticky-note"></i> Ghi chú</label>
+                    <textarea id="modalNote" class="form-control" rows="4"
+                              placeholder="Thêm ghi chú cho đơn hàng (tùy chọn)..."></textarea>
+                    <small class="text-muted">Ghi chú này sẽ được lưu lại và hiển thị trong lịch sử đơn hàng</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+                <button type="button" class="btn btn-primary" id="btnUpdateStatus">
+                    <i class="fas fa-save"></i> Cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Open modal and set data
+            $('#statusModal').on('show.bs.modal', function(event) {
+                const button = $(event.relatedTarget);
+                const orderId = button.data('order-id');
+                const currentStatus = button.data('current-status');
+                const currentNote = button.data('current-note') || '';
+
+                $('#modalOrderId').val(orderId);
+                $('#modalStatus').val(currentStatus);
+                $('#modalNote').val(currentNote);
+            });
+
+            // Update status
+            $('#btnUpdateStatus').on('click', function() {
+                const orderId = $('#modalOrderId').val();
+                const status = $('#modalStatus').val();
+                const note = $('#modalNote').val().trim();
+                const btn = $(this);
+                const originalText = btn.html();
+
+                btn.html('<i class="fas fa-spinner fa-spin"></i> Đang cập nhật...').prop('disabled', true);
+
+                $.ajax({
+                    url: '@Url.Action("UpdateStatus", "Order")',
+                    type: 'POST',
+                    data: {
+                        orderId: orderId,
+                        status: status,
+                        note: note
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Update badge
+                            const badge = $(`#status-badge-${orderId}`);
+                            badge.attr('class', 'badge ' + getStatusBadgeClass(parseInt(status)));
+                            badge.text(getStatusText(parseInt(status)));
+
+                            // Close modal
+                            $('#statusModal').modal('hide');
+
+                            // Show success message
+                            showToast('success', response.message);
+
+                            // Reload page after 1.5s to show updated note
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showToast('error', response.message);
+                        }
+
+                        btn.html(originalText).prop('disabled', false);
+                    },
+                    error: function() {
+                        showToast('error', 'Có lỗi xảy ra khi cập nhật trạng thái');
+                        btn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
+
+            function getStatusBadgeClass(status) {
+                switch(status) {
+                    case 0: return 'bg-warning text-dark';
+                    case 1: return 'bg-info';
+                    case 2: return 'bg-primary';
+                    case 3: return 'bg-success';
+                    case 4: return 'bg-danger';
+					case 5: return 'bg-success';
+                    default: return 'bg-secondary';
+                }
+            }
+
+            function getStatusText(status) {
+                switch(status) {
+                    case 0: return 'Chờ xử lý';
+                    case 1: return 'Đang xử lý';
+                    case 2: return 'Đã gửi hàng';
+                    case 3: return 'Đã giao';
+                    case 4: return 'Đã hủy';
+                    default: return 'Không xác định';
+                }
+            }
+
+            function showToast(type, message) {
+                const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+                const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+                const toast = `
+                    <div class="alert ${alertClass} alert-dismissible fade show position-fixed"
+                         style="top: 80px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                         role="alert">
+                        <i class="fas ${icon}"></i> ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+
+                $('body').append(toast);
+
+                setTimeout(function() {
+                    $('.alert').fadeOut(300, function() { $(this).remove(); });
+                }, 3000);
+            }
+        });
+    </script>
+}
+
+@functions {
+    string GetStatusBadgeClass(TTCSN.Entities.Enum.OrderStatus status)
+    {
+        return status switch
+        {
+            TTCSN.Entities.Enum.OrderStatus.Pending => "bg-warning text-dark",
+            TTCSN.Entities.Enum.OrderStatus.Processing => "bg-info",
+            TTCSN.Entities.Enum.OrderStatus.Shipped => "bg-primary",
+            TTCSN.Entities.Enum.OrderStatus.Delivered => "bg-success",
+            TTCSN.Entities.Enum.OrderStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetStatusText(TTCSN.Entities.Enum.OrderStatus status)
+    {
+        return status switch
+        {
+            TTCSN.Entities.Enum.OrderStatus.Pending => "Chờ xử lý",
+            TTCSN.Entities.Enum.OrderStatus.Processing => "Đang xử lý",
+            TTCSN.Entities.Enum.OrderStatus.Shipped => "Đã gửi hàng",
+            TTCSN.Entities.Enum.OrderStatus.Delivered => "Đã giao",
+            TTCSN.Entities.Enum.OrderStatus.Cancelled => "Đã hủy",
+            _ => "Không xác định"
+        };
+    }
+
+    string GetPaymentMethodBadgeClass(TTCSN.Entities.Enum.PaymentMethods paymentMethod)
+    {
+        return paymentMethod switch
+        {
+            TTCSN.Entities.Enum.PaymentMethods.Cod => "bg-secondary",
+            TTCSN.Entities.Enum.PaymentMethods.Vnpay => "bg-primary",
+            _ => "bg-dark"
+        };
+    }
+
+    string GetPaymentMethodIcon(TTCSN.Entities.Enum.PaymentMethods paymentMethod)
+    {
+        return paymentMethod switch
+        {
+            TTCSN.Entities.Enum.PaymentMethods.Cod => "fas fa-money-bill-wave",
+            TTCSN.Entities.Enum.PaymentMethods.Vnpay => "fas fa-credit-card",
+            _ => "fas fa-question"
+        };
+    }
+
+    string GetPaymentMethodText(TTCSN.Entities.Enum.PaymentMethods paymentMethod)
+    {
+        return paymentMethod switch
+        {
+            TTCSN.Entities.Enum.PaymentMethods.Cod => "COD",
+            TTCSN.Entities.Enum.PaymentMethods.Vnpay => "VNPay",
+            _ => "Không xác định"
+        };
+    }
+}
