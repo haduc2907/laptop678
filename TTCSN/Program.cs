@@ -16,6 +16,13 @@ namespace TTCSN
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            
+            // 
+            builder.WebHost.ConfigureKestrel(serverOptions =>
+            {
+                var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+                serverOptions.ListenAnyIP(int.Parse(port));
+            });
 
             // Register repositories
             builder.Services.AddSingleton<IUserControllerRepository, SqlUserControllerRepository>();
