@@ -16,13 +16,14 @@ namespace TTCSN
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddSession();
             
             // 
-            builder.WebHost.ConfigureKestrel(serverOptions =>
-            {
-                var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-                serverOptions.ListenAnyIP(int.Parse(port));
-            });
+            //builder.WebHost.ConfigureKestrel(serverOptions =>
+            //{
+            //    var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+            //    serverOptions.ListenAnyIP(int.Parse(port));
+            //});
 
             // Register repositories
             builder.Services.AddSingleton<IUserControllerRepository, SqlUserControllerRepository>();
@@ -39,6 +40,10 @@ namespace TTCSN
             builder.Services.AddScoped<UserControllerRepository>();
             builder.Services.AddScoped<CategoryControllerRepository>();
             builder.Services.AddScoped<ProductControllerRepository>();
+
+            //Otp
+            builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddSingleton<IOtpService, OtpService>();
 
             // Add HttpContextAccessor for accessing session in services
 
@@ -71,7 +76,7 @@ namespace TTCSN
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
+            app.UseSession();
             app.UseRouting();
             app.UseSession();
             app.UseAuthentication();

@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TTCSN.Entities;
 using TTCSN.Entities.Enum;
 using TTCSN.Models;
+using TTCSN.Services;
 using TTCSN.Usecase.UserSide;
 namespace TTCSN.Controllers
 {
@@ -14,8 +16,15 @@ namespace TTCSN.Controllers
     {
         private readonly ILogger<AccountController> _logger;
         private readonly UserControllerRepository _userRepo;
-        public AccountController(UserControllerRepository userRepo, ILogger<AccountController> logger)
+        private readonly IEmailService _emailService;
+        private readonly IOtpService _otpService;
+        public AccountController(UserControllerRepository userRepo, 
+            ILogger<AccountController> logger,
+            IEmailService email,
+            IOtpService otp)
         {
+            _emailService = email;
+            _otpService = otp;
             _userRepo = userRepo;
             _logger = logger;
         }
@@ -185,6 +194,11 @@ namespace TTCSN.Controllers
             };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            var otp = _otpService.GenerateOtp();
+            _otpService.StoreOtp(accountName, otp);
+            await _emailService.SendOtpEmailAsync(accountName, otp);
+            HttpContext.Session.SetString("accountname", accountName);
+            TempData["Success"] = "Gửi otp thành công!";
             return RedirectToAction("ForgotPasswordConfirmation");
 
         }
@@ -205,6 +219,19 @@ namespace TTCSN.Controllers
                 ModelState.AddModelError(string.Empty, "Mã OTP không hợp lệ.");
                 return View();
             }
+            var user = HttpContext.Session.GetString("accountname");
+            if (string.IsNullOrEmpty(user))
+            {
+                _logger.LogInformation("Loi deo tim thay tai khoan luu trong session");
+                return View();
+            }
+            var isValid = _otpService.ValidateOtp(user, otp);
+            if (!isValid)
+            {
+                TempData["Error"] = "Otp không đúng hoặc đã hết hạn! Vui lòng thử lại sau";
+                return View();
+            }
+            HttpContext.Session.Clear();
             return RedirectToAction("ChangePassword");
         }
         [HttpGet]
